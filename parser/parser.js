@@ -6,8 +6,8 @@ export async function parse(fileContent, scan) {
   }
 
   const report = JSON.parse(fileContent);
-  print("aaaaaaaaaaaaaa")
-  print(report)
+  console.log("Hello from the console!");
+  console.log(report);
 
   if (!report) {
     return [];
@@ -18,6 +18,7 @@ export async function parse(fileContent, scan) {
 
   return report.map((finding) => {
     let severity = "MEDIUM";
+    console.log("zzzz");
 
     
     return {
