@@ -1,0 +1,14 @@
+# SPDX-FileCopyrightText: the secureCodeBox authors 
+# 
+# SPDX-License-Identifier: Apache-2.0 
+
+apiVersion: "execution.securecodebox.io/v1"
+kind: Scan
+metadata:
+  name: "grype-spring4shell-tomcat"
+spec:
+  scanType: "grype"
+  parameters:
+    # Note: Localhost here isn't "your" localhost, but the scanner container.
+    # This container doesn't have any ports open...
+    - "rajasoun/spring4shell-tomcat"
