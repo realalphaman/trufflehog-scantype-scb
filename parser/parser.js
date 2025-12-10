@@ -1,25 +1,67 @@
-async function parse(scanResults) {
+const repoUrlAnnotationKey = "metadata.scan.securecodebox.io/git-repo-url";
 
-  if (typeof(scanResults) === "string") // empty file
+export async function parse(fileContent, scan) {
+  if (!fileContent) {
     return [];
-    
-  const findings = [];
+  }
 
-  for (let i = 0; i < scanResults.matches.length; i++) {
-      findings.push({
-          name: "trufflehog scan secret: " + scanResults.matches[i].DetectorName,
-          description: scanResults.matches[i].DetectorDescription,
-          category: "trufflehog scan secret",
-          location: scanResults.matches[i].SourceMetadata.Data.Git.repository + "/blob/" + scanResults.matches[i].SourceMetadata.Data.Git.commit + "/" + scanResults.matches[i].SourceMetadata.Data.Git.file + "#L" + scanResults.matches[i].SourceMetadata.Data.Git.line,
-          osi_layer: "APPLICATION",
-          severity: "HIGH",
-          reference: {},
-          confidence: scanResults.matches[i].SourceMetadata.Data.Git.Raw,
-          attributes: {}
-      })
+  const report = JSON.parse(fileContent);
+
+  if (!report) {
+    return [];
+  }
+
+  const commitUrlBase = prepareCommitUrl(scan);
+
+  return report.map((finding) => {
+    let severity = "MEDIUM";
+
+    if (containsTag(finding.Tags, ["HIGH"])) {
+      severity = "HIGH";
+    } else if (containsTag(finding.Tags, ["LOW"])) {
+      severity = "LOW";
     }
-    
-  return findings;
+
+    return {
+      name: finding.RuleID,
+      description:
+        "The name of the rule which triggered the finding: " + finding.RuleID,
+      osi_layer: "APPLICATION",
+      severity: severity,
+      category: "Potential Secret",
+      attributes: {
+        commit: commitUrlBase + finding.Commit,
+        description: finding.Description,
+        offender: finding.Secret,
+        author: finding.Author,
+        email: finding.Email,
+        date: finding.Date,
+        file: finding.File,
+        line_number: finding.StartLine,
+        tags: finding.Tags,
+        line: finding.Match,
+      },
+    };
+  });
 }
 
-module.exports.parse = parse;
+function containsTag(tag, tags) {
+  let result = tags.filter((longTag) => tag.includes(longTag));
+  return result.length > 0;
+}
+
+function prepareCommitUrl(scan) {
+  if (
+    !scan ||
+    !scan.metadata.annotations ||
+    !scan.metadata.annotations[repoUrlAnnotationKey]
+  ) {
+    return "";
+  }
+
+  var repositoryUrl = scan.metadata.annotations[repoUrlAnnotationKey];
+
+  return repositoryUrl.endsWith("/")
+    ? repositoryUrl + "commit/"
+    : repositoryUrl + "/commit/";
+}
