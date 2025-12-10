@@ -6,6 +6,7 @@ export async function parse(fileContent, scan) {
   }
 
   const report = JSON.parse(fileContent);
+  print("aaaaaaaaaaaaaa")
   print(report)
 
   if (!report) {
