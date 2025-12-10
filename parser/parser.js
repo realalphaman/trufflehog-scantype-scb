@@ -6,12 +6,14 @@ export async function parse(fileContent, scan) {
   }
 
   const report = JSON.parse(fileContent);
+  print(report)
 
   if (!report) {
     return [];
   }
 
-  const commitUrlBase = prepareCommitUrl(scan);
+  
+
 
   return report.map((finding) => {
     let severity = "MEDIUM";
@@ -34,18 +36,3 @@ export async function parse(fileContent, scan) {
   });
 }
 
-function prepareCommitUrl(scan) {
-  if (
-    !scan ||
-    !scan.metadata.annotations ||
-    !scan.metadata.annotations[repoUrlAnnotationKey]
-  ) {
-    return "";
-  }
-
-  var repositoryUrl = scan.metadata.annotations[repoUrlAnnotationKey];
-
-  return repositoryUrl.endsWith("/")
-    ? repositoryUrl + "commit/"
-    : repositoryUrl + "/commit/";
-}
