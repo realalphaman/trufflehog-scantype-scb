@@ -16,38 +16,22 @@ export async function parse(fileContent, scan) {
   return report.map((finding) => {
     let severity = "MEDIUM";
 
-    if (containsTag(finding.Tags, ["HIGH"])) {
-      severity = "HIGH";
-    } else if (containsTag(finding.Tags, ["LOW"])) {
-      severity = "LOW";
-    }
-
+    
     return {
-      name: finding.RuleID,
+      name: "trufflehog scan secret: " + finding.DetectorName,
       description:
-        "The name of the rule which triggered the finding: " + finding.RuleID,
+        finding.DetectorDescription,
       osi_layer: "APPLICATION",
       severity: severity,
       category: "Potential Secret",
-      attributes: {
-        commit: commitUrlBase + finding.Commit,
-        description: finding.Description,
-        offender: finding.Secret,
-        author: finding.Author,
-        email: finding.Email,
-        date: finding.Date,
-        file: finding.File,
-        line_number: finding.StartLine,
-        tags: finding.Tags,
-        line: finding.Match,
-      },
+      location: finding.SourceMetadata.Data.Git.repository + "/blob/" + finding.SourceMetadata.Data.Git.commit + "/" + finding.SourceMetadata.Data.Git.file + "#L" + finding.SourceMetadata.Data.Git.line,
+      osi_layer: "APPLICATION",
+      severity: "HIGH",
+      reference: {},
+      confidence: finding.SourceMetadata.Data.Git.Raw,
+      attributes: finding.SourceMetadata.Data.Git,
     };
   });
-}
-
-function containsTag(tag, tags) {
-  let result = tags.filter((longTag) => tag.includes(longTag));
-  return result.length > 0;
 }
 
 function prepareCommitUrl(scan) {
