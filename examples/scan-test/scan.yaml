@@ -11,4 +11,5 @@ spec:
   parameters:
     # Note: Localhost here isn't "your" localhost, but the scanner container.
     # This container doesn't have any ports open...
+    - "git"
     - "https://github.com/Webgoat/Webgoat"
